@@ -1,6 +1,6 @@
 services:
   browser:
-    image: lscr.io/linuxserver/webtop:ubuntu-chromium
+    image: lscr.io/linuxserver/chromium:latest
     restart: unless-stopped
     environment:
       - PUID=1000
