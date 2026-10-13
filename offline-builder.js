@@ -36,10 +36,10 @@ function generate(prompt,designId=0){
  const radius=[0,4,8,12,18,24,30,40,50,60];
  const sectionPad=[75,85,95,105,115,125,135,145,155,165];
  const textScale=[.88,.92,.96,1,1.04,1.08,1.12,1.16,1.2,1.24];
- const accent=accents[digits[0]],background=backgrounds[digits[1]],font=typefaces[digits[2]],alignment=heroAlign[digits[3]],round=radius[digits[4]],padding=sectionPad[digits[5]],scale=textScale[digits[6]];
+ const designAccent=accents[digits[0]],background=backgrounds[digits[1]],font=typefaces[digits[2]],alignment=heroAlign[digits[3]],round=radius[digits[4]],padding=sectionPad[digits[5]],scale=textScale[digits[6]];
  css+=`
  /* Design ${id}: seven independent design dimensions, 10 options each. */
- :root{--accent:${accent};--bg:${background};--ink:#f4f5f4;--muted:#b9c3c9;--line:#ffffff24}
+ :root{--accent:${designAccent};--bg:${background};--ink:#f4f5f4;--muted:#b9c3c9;--line:#ffffff24}
  body{font-family:${font}}
  .hero-copy{text-align:${alignment}}
  .hero-copy>p{margin-left:${alignment==='center'?'auto':'0'};margin-right:${alignment==='center'?'auto':'0'}}
