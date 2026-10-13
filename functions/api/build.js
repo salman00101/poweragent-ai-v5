@@ -12,17 +12,17 @@ export async function onRequestPost({request,env}){
  "IMPLEMENTATION: index.html must contain complete semantic HTML and link relative styles.css and script.js (script defer). styles.css must be comprehensive, responsive, and include hover, focus-visible, and reduced-motion support. script.js must be complete valid vanilla JS, selectors MUST match actual HTML. All navigation and interactive controls should function; if a feature needs a backend, clearly indicate it is a demo and do not fake submissions. Use realistic relevant copy instead of lorem ipsum.",
  "DEPENDENCIES: No external libraries, remote images, fonts, or external assets. Use inline SVG or CSS shapes for visual interest. No secrets, no trackers, no external API calls.",
  "QA: Before returning, mentally check: exact file names, matching CSS/JS selectors, valid JS, responsive navigation, button behaviors, HTML links to assets, and no missing sections. Provide substantial useful content, not a wireframe.",
- "SCOPE: Keep all three files compact enough to fit in one response. Prefer complete, working sections over numerous empty features.",
+ "SCOPE: Generate a polished, complete ONE-PAGE website with hero, 2-3 sections, footer and small working interactions. Keep the total output concise: HTML under 2500 words, CSS under 3000 words, JS under 800 words. Do not add explanations. Quality over size.",
  "USER REQUEST: "+prompt.trim()
- ].join("\\n");
- const model=env.GEMINI_MODEL||"gemini-2.5-flash";const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),45000);
+ ].join("\n");
+ const model=env.GEMINI_MODEL||"gemini-2.5-flash";const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),85000);
  try{
   const endpoint="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent";
-  const options={method:"POST",signal:controller.signal,headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:instructions}]}],generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json"}})};
+  const options={method:"POST",signal:controller.signal,headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:instructions}]}],generationConfig:{maxOutputTokens:6000,responseMimeType:"application/json"}})};
   let r;
-  for(let attempt=0;attempt<3;attempt++){
+  for(let attempt=0;attempt<2;attempt++){
    r=await fetch(endpoint,options);
-   if(![500,502,503,504].includes(r.status)||attempt===2)break;
+   if(![500,502,503,504].includes(r.status)||attempt===1)break;
    await r.body?.cancel();
    await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));
   }
@@ -35,5 +35,5 @@ export async function onRequestPost({request,env}){
   if(!files||["index.html","styles.css","script.js"].some(k=>typeof files[k]!=="string"||!files[k].trim()))return respond({error:"AI did not return all three files. Try again."},502);
   if(Object.values(files).some(x=>x.length>150000))return respond({error:"Generated project is too large."},502);
   return respond({files:{"index.html":files["index.html"],"styles.css":files["styles.css"],"script.js":files["script.js"]}});
- }catch(e){return respond({error:e?.name==="AbortError"?"Build timed out. Try a smaller request.":"Could not generate project."},502)}finally{clearTimeout(timer)}
+ }catch(e){return respond({error:e?.name==="AbortError"?"Gemini took too long (85 seconds). The provider may be overloaded; retry later or use a faster available model.":"Could not generate project."},502)}finally{clearTimeout(timer)}
 }
