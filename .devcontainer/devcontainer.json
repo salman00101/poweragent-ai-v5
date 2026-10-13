@@ -1,0 +1,23 @@
+{
+  "name": "PowerAgent Private Cloud Browser",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "forwardPorts": [
+    3000
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "Private Cloud Chromium",
+      "onAutoForward": "notify",
+      "visibility": "private"
+    }
+  },
+  "postStartCommand": "docker compose -f .devcontainer/cloud-browser.compose.yml up -d",
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}
