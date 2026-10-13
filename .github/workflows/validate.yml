@@ -13,6 +13,7 @@ jobs:
           node --check builder.js
           node --check demo-project.js
           node --check studio.js
+          node --check offline-builder.js
           node --check functions/api/build.js
           node --check functions/api/chat.js
           node --check functions/api/diagnose.js
@@ -20,4 +21,4 @@ jobs:
           node --check functions/api/version.js
       - name: Check linked frontend assets
         run: |
-          node -e "const fs=require('fs');const h=fs.readFileSync('index.html','utf8');for(const p of ['builder.js','demo-project.js','studio.js','studio.css']){if(!fs.existsSync(p)||!h.includes(p))throw Error('Missing linked asset '+p)}"
+          node -e "const fs=require('fs');const h=fs.readFileSync('index.html','utf8');for(const p of ['builder.js','demo-project.js','studio.js','studio.css','offline-builder.js']){if(!fs.existsSync(p)||!h.includes(p))throw Error('Missing linked asset '+p)}"
