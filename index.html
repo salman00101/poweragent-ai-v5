@@ -28,4 +28,4 @@ send.addEventListener('click',async()=>{
   finally{send.disabled=false;send.textContent='Create with PowerAgent ↗'}
 });
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));const name=b.dataset.tab;document.getElementById('view-name').textContent=name;if(name==='Command Center')show('Command Center ready. Enter a prompt to talk to Gemini.');else show(name+' workspace is not implemented yet. Use Command Center for AI chat.')}))
-</script></body></html>
+</script><script src="builder.js" defer></script></body></html>
