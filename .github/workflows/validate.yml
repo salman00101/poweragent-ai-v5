@@ -11,6 +11,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check builder.js
+          node --check demo-project.js
           node --check functions/api/build.js
           node --check functions/api/chat.js
           node --check functions/api/diagnose.js
