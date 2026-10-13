@@ -1,0 +1,1 @@
+export function onRequestGet(){return new Response(JSON.stringify({app:"PowerAgent AI",build:"v5.4-diagnostics",buildTimeoutSeconds:85,feature:"project-builder",deployedAt:"2026-10-14"}),{headers:{"Content-Type":"application/json","Cache-Control":"no-store"}})}
