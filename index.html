@@ -28,4 +28,4 @@ send.addEventListener('click',async()=>{
   finally{send.disabled=false;send.textContent='Create with PowerAgent ↗'}
 });
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));const name=b.dataset.tab;document.getElementById('view-name').textContent=name;if(name==='Command Center')show('Command Center ready. Ask Gemini or build a website below.');else if(name==='Projects')show('Project Builder is below. Generate a project or open the offline example.');else show(name+' is coming soon. For now, use Command Center and Project Builder.')}))
-</script><script src="demo-project.js" defer></script><script src="builder.js" defer></script><script src="studio.js" defer></script></body></html>
+</script><script src="demo-project.js" defer></script><script src="offline-builder.js" defer></script><script src="builder.js" defer></script><script src="studio.js" defer></script></body></html>
