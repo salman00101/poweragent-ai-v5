@@ -1,0 +1,18 @@
+services:
+  browser:
+    image: lscr.io/linuxserver/webtop:ubuntu-chromium
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - TITLE=PowerAgent Cloud Browser
+    volumes:
+      - browser_data:/config
+    ports:
+      - "127.0.0.1:3000:3000"
+    shm_size: "1gb"
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  browser_data:
