@@ -17,8 +17,19 @@ export async function onRequestPost({request,env}){
  ].join("\\n");
  const model=env.GEMINI_MODEL||"gemini-2.5-flash";const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),45000);
  try{
-  const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent",{method:"POST",signal:controller.signal,headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:instructions}]}],generationConfig:{maxOutputTokens:12000,responseMimeType:"application/json"}})});
-  if(!r.ok)return respond({error:r.status===429?"Gemini quota reached. Try later.":"AI provider error ("+r.status+")."},r.status===429?429:502);
+  const endpoint="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent";
+  const options={method:"POST",signal:controller.signal,headers:{"Content-Type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{role:"user",parts:[{text:instructions}]}],generationConfig:{maxOutputTokens:8192,responseMimeType:"application/json"}})};
+  let r;
+  for(let attempt=0;attempt<3;attempt++){
+   r=await fetch(endpoint,options);
+   if(![500,502,503,504].includes(r.status)||attempt===2)break;
+   await r.body?.cancel();
+   await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));
+  }
+  if(!r.ok){
+   const message=r.status===429?"Gemini quota reached. Wait for quota reset.":r.status===503?"Gemini is temporarily unavailable or overloaded. Please retry later.":r.status===404?"Gemini model not found. Check GEMINI_MODEL in Cloudflare.":"Gemini API returned status "+r.status+".";
+   return respond({error:message},r.status===429?429:502);
+  }
   const result=await r.json();let raw=result?.candidates?.[0]?.content?.parts?.map(x=>x.text||"").join("")||"";raw=raw.trim().replace(/^\x60\x60\x60(?:json)?\s*/i,"").replace(/\s*\x60\x60\x60$/,"");
   let files;try{files=JSON.parse(raw)}catch{return respond({error:"AI returned incomplete JSON. Try a smaller project description."},502)}
   if(!files||["index.html","styles.css","script.js"].some(k=>typeof files[k]!=="string"||!files[k].trim()))return respond({error:"AI did not return all three files. Try again."},502);
