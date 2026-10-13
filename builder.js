@@ -16,10 +16,10 @@ preview.addEventListener('click',()=>{
  const closingScript=String.fromCharCode(60,47)+'script>';
  const closingStyle=String.fromCharCode(60,47)+'style>';
  let html=files['index.html'];
- html=html.replace(/<link\\b[^>]*href=["'](?:\\.\\/)?styles\\.css["'][^>]*>/gi,'');
- html=html.replace(/<script\\b[^>]*src=["'](?:\\.\\/)?script\\.js["'][^>]*><\\/script>/gi,'');
- const safeCSS=files['styles.css'].replace(/<\\/style/gi,'<\\\\/style');
- const safeJS=files['script.js'].replace(/<\\/script/gi,'<\\\\/script');
+ html=html.replace(/<link\b[^>]*href=["'](?:\.\/)?styles\.css["'][^>]*>/gi,'');
+ html=html.replace(/<script\b[^>]*src=["'](?:\.\/)?script\.js["'][^>]*><\/script>/gi,'');
+ const safeCSS=files['styles.css'].replace(/<\/style/gi,'<\\/style');
+ const safeJS=files['script.js'].replace(/<\/script/gi,'<\\/script');
  const cssTag='<style>'+safeCSS+closingStyle;
  const jsTag='<script>'+safeJS+closingScript;
  html=html.includes('</head>')?html.replace('</head>',cssTag+'</head>'):cssTag+html;
