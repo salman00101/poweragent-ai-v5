@@ -6,7 +6,7 @@ export async function onRequestGet({env}){
   const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=100",{headers:{"x-goog-api-key":env.GEMINI_API_KEY},signal:controller.signal});
   if(!res.ok)return reply({ok:false,status:res.status,category:res.status===429?"quota":res.status===403?"permission":"provider_error"},502);
   const data=await res.json();
-  const models=(data.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>({name:m.name.replace(/^models\\//,""),displayName:m.displayName||m.name,outputTokenLimit:m.outputTokenLimit||null}));
+  const models=(data.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent")).map(m=>({name:m.name.startsWith("models/")?m.name.slice(7):m.name,displayName:m.displayName||m.name,outputTokenLimit:m.outputTokenLimit||null}));
   return reply({ok:true,models,note:"Listed models are not guaranteed to have remaining quota."});
  }catch(e){return reply({ok:false,category:e.name==="AbortError"?"timeout":"network_error"},502)}finally{clearTimeout(timer)}
 }
