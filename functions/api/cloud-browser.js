@@ -45,14 +45,12 @@ export async function stopForLogout(env){
 }
 
 export async function getPortForOwner(env){
- const r=await chosen(env);if(r.error)return {ok:false,error:'Codespace lookup failed: '+r.error,status:r.status};
+ const r=await chosen(env);
+ if(r.error)return {ok:false,error:'Codespace lookup failed: '+r.error,status:r.status};
  if(r.codespace.state!=='Available')return {ok:false,error:'Codespace is not ready',status:409};
- const p=await call(env,'/user/codespaces/'+encodeURIComponent(r.codespace.name)+'/ports');
- if(p.error)return {ok:false,error:'Port lookup failed: '+p.error+' (HTTP '+p.status+'). Start/Stop access may work even if port access is restricted.',status:p.status};
- const port=(p.data.ports||[]).find(x=>Number(x.port)===3000);
- if(!port?.forwarded_address)return {ok:false,error:'Port 3000 is not forwarded yet. Check container startup.',status:404};
- let url;try{url=new URL(port.forwarded_address)}catch{return {ok:false,error:'Invalid port URL',status:502}}
- if(url.protocol!=='https:'||!url.hostname.endsWith('.app.github.dev'))return {ok:false,error:'Unexpected port host',status:502};
- if(port.visibility&&port.visibility!=='private')return {ok:false,error:'Port 3000 must be Private',status:403};
- return {ok:true,url:url.toString()};
+ const name=r.codespace.name;
+ if(typeof name!=='string'||!/^[a-z0-9-]+$/.test(name))return {ok:false,error:'Unexpected Codespace name',status:502};
+ // GitHub documents the standard forwarded port URL pattern.
+ // This constructs a candidate URL, NOT proof that port 3000 is forwarded or private.
+ return {ok:true,url:'https://'+name+'-3000.app.github.dev',verified:false,note:'GitHub authentication is still required for a private port. Link may not work until port 3000 is forwarded.'};
 }
