@@ -1,4 +1,4 @@
-import {json,authorized,sameOrigin} from '../auth/_lib.js';
+import {json,authorized,sameOrigin} from './auth/_lib.js';
 const repo='salman00101/poweragent-ai-v5';
 const headers=token=>({'authorization':'Bearer '+token,'accept':'application/vnd.github+json','x-github-api-version':'2022-11-28','user-agent':'PowerAgent-Owner'});
 async function call(env,path,method='GET'){
