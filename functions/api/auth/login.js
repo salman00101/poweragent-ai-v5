@@ -8,14 +8,17 @@ export async function onRequestPost({request,env}){
     body=await request.json();
   }catch{return json({ok:false,error:'Invalid request'},400)}
   if(typeof body?.password!=='string'||body.password.length>256||typeof body.code!=='string')return json({ok:false,error:'Invalid credentials'},401);
+  let stage='password';
   try{
     const pass=await passwordOK(body.password,env);
+    stage='authenticator';
     const otp=await totpOK(body.code,env.POWERAGENT_TOTP_SECRET);
     if(!pass||!otp)return json({ok:false,error:'Invalid credentials'},401);
+    stage='session';
     return json({ok:true},200,{'set-cookie':await sessionCookie(env.POWERAGENT_SESSION_SECRET)});
   }catch(e){
-    // Do not return raw errors, secrets, or stack traces to visitors.
-    console.error('PowerAgent authentication runtime failure',e?.name||'Error');
-    return json({ok:false,error:'Authentication service error. Check Cloudflare Pages Functions logs.'},503);
+    // Report only the failing stage, not input values, secrets, or raw exception.
+    console.error('PowerAgent auth failed at stage:',stage,'type:',e?.name||'Error');
+    return json({ok:false,error:'Authentication service error',stage},503);
   }
 }
