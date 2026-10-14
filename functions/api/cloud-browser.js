@@ -45,10 +45,10 @@ export async function stopForLogout(env){
 }
 
 export async function getPortForOwner(env){
- const r=await chosen(env);if(r.error)return {ok:false,error:r.error,status:r.status};
+ const r=await chosen(env);if(r.error)return {ok:false,error:'Codespace lookup failed: '+r.error,status:r.status};
  if(r.codespace.state!=='Available')return {ok:false,error:'Codespace is not ready',status:409};
  const p=await call(env,'/user/codespaces/'+encodeURIComponent(r.codespace.name)+'/ports');
- if(p.error)return {ok:false,error:p.error,status:p.status};
+ if(p.error)return {ok:false,error:'Port lookup failed: '+p.error+' (HTTP '+p.status+'). Start/Stop access may work even if port access is restricted.',status:p.status};
  const port=(p.data.ports||[]).find(x=>Number(x.port)===3000);
  if(!port?.forwarded_address)return {ok:false,error:'Port 3000 is not forwarded yet. Check container startup.',status:404};
  let url;try{url=new URL(port.forwarded_address)}catch{return {ok:false,error:'Invalid port URL',status:502}}
