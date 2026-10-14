@@ -59,12 +59,14 @@ export async function onRequest({request,env,params}){
   }
   const type=response.headers.get('content-type')||'';
   if(/text\/html/i.test(type)){
+   const html=await response.text();
+   if(/about to access a development port|served by someone.s codespace|Codespaces Access Port/i.test(html))return new Response('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PowerAgent Gateway</title><body style="font:16px system-ui;background:#0b1020;color:white;padding:30px;max-width:700px;margin:auto"><h1>Secure browser connection unavailable</h1><p>GitHub returned a Codespaces port warning instead of Chromium. The PowerAgent-only browser gateway is not ready yet. Your port remains private.</p><p><a style="color:#b8a8ff" href="/private-dashboard.html">Back to PowerAgent</a></p></body></html>',{status:502,headers:{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}});
    outHeaders.delete('content-length');
    outHeaders.delete('content-encoding');
    return new HTMLRewriter()
     .on('a[href],link[href],form[action]',new AttrRewriter(['href','action']))
     .on('script[src],img[src],iframe[src],source[src]',new AttrRewriter(['src']))
-    .transform(new Response(response.body,{status:response.status,headers:outHeaders}));
+    .transform(new Response(html,{status:response.status,headers:outHeaders}));
   }
   if(/(?:javascript|ecmascript|text\/css)/i.test(type)){
    const text=await response.text();
