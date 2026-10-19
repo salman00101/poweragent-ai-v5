@@ -1,14 +1,14 @@
 #!/usr/bin/env sh
-# Read-only host checks and ephemeral isolated container TUN test.
-# No host network, routes, DNS, ports, Chromium containers, or secrets modified.
+# Isolated TUN readiness test. No host networking or browser changes.
 set -u
 printf '%s\n' '=== VPN readiness diagnostic ==='
 printf 'Codespace: %s\n' "${CODESPACE_NAME:-unknown}"
-printf '%s\n' '=== Docker availability ==='
 if ! command -v docker >/dev/null 2>&1; then echo 'Docker unavailable'; exit 1; fi
 docker version --format 'Docker server: {{.Server.Version}}' || exit 1
-printf '%s\n' '=== Temporary isolated TUN interface test ==='
+printf '%s\n' '=== Temporary isolated TUN test ==='
+# Alpine BusyBox ip does not implement 'ip tuntap'; use iproute2.
 docker run --rm --network none --cap-add NET_ADMIN --device /dev/net/tun alpine:3.20 sh -eu -c '
+  apk add --no-cache iproute2 >/dev/null
   test -c /dev/net/tun
   ip tuntap add dev vpn-test mode tun
   ip link set vpn-test up
