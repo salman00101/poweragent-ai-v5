@@ -1,0 +1,22 @@
+# Separate mobile-oriented Chromium; does not modify desktop port 3000 or its volume.
+# Start: docker compose -f .devcontainer/mobile-browser.compose.yml up -d
+# Stop:  docker compose -f .devcontainer/mobile-browser.compose.yml down
+services:
+  mobile:
+    image: lscr.io/linuxserver/chromium:latest
+    restart: unless-stopped
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: Etc/UTC
+      TITLE: PowerAgent Mobile Chromium
+      CHROME_CLI: "--window-size=412,915 --force-device-scale-factor=1"
+    volumes:
+      - mobile_browser_data:/config
+    ports:
+      - "127.0.0.1:3002:3000"
+    shm_size: "768mb"
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  mobile_browser_data:
