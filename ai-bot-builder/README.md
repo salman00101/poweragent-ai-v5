@@ -46,3 +46,11 @@ The cloud entrypoint is `ai-bot-builder/cloud_app.py`. It uses a user-provided H
 **Security:** Never commit API tokens to GitHub. The app does not save the token to the repository. If you deploy publicly, other visitors can open the UI but must supply their own token. Cloud prompts go to the inference provider. Do not enter sensitive information. The app never executes generated code.
 
 The original local entrypoint remains `ai-bot-builder/app.py`.
+
+## Cloud edition update (Groq)
+
+The deployed entrypoint `ai-bot-builder/cloud_app.py` now uses Groq instead of Hugging Face, so the previous 402 Hugging Face credits error no longer applies. It requires a Groq API key, and free-tier rate limits apply. Create your own key at https://console.groq.com/keys and enter it in the sidebar of the Streamlit app. Never share keys or commit them to the repository. The key is not saved by this application.
+
+The **My coding rules** editor lets you write your own style, library, explanation, and testing preferences. Download them as a text file for reuse. They do not override restrictions on account-abuse or verification-bypass automation.
+
+The app has not been end-to-end tested with a real API key. If Groq returns a model-not-found or access error, choose the other model from the sidebar. Cloud prompts are processed by Groq, and generated code is not executed.
