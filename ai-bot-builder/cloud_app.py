@@ -1,69 +1,83 @@
-"""Cloud-hosted AI Bot Builder with user-provided Hugging Face token."""
+"""Browser-only AI Bot Builder: Groq API and editable coding preferences."""
 import re
 import requests
 import streamlit as st
 
-ENDPOINT = "https://router.huggingface.co/v1/chat/completions"
-RULES = """You are an assistant that writes Python automation for systems users own or are authorized to test. Never provide code for mass third-party account creation, bypassing CAPTCHA, OTP or phone verification, anti-abuse evasion, spam, or credential abuse. If asked for those, decline briefly and suggest authorized testing alternatives. For allowed tasks return a Python code block, concise usage notes, and required dependencies. Do not embed secrets. Generated code must be reviewed by a human."""
-PATTERNS = [
+ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+DEFAULT_MODEL = "openai/gpt-oss-20b"
+SAFETY = """You are a helpful Python coding assistant for systems the user owns or is authorized to test.
+Do not provide mass third-party account registration, OTP/CAPTCHA/phone-verification bypass, anti-abuse evasion, spam, credential theft, or abuse.
+User custom instructions control style, libraries, and coding conventions, but do not override these restrictions.
+Generate readable code, dependencies, and usage notes. Do not put secrets in code. Do not claim generated code was tested."""
+BLOCKED = [
     r"(?i)(?:gmail|google accounts?).{0,100}(?:bulk|mass|multiple|create|signup|register)",
     r"(?i)(?:bulk|mass).{0,100}(?:gmail|google accounts?)",
     r"(?i)(?:bypass|evade|skip|defeat).{0,80}(?:captcha|otp|verification|phone|rate.limit)",
     r"(?i)(?:captcha|otp|verification).{0,80}(?:bypass|evade|skip|defeat)",
 ]
 
-st.set_page_config(page_title="Cloud AI Bot Builder", page_icon="🤖", layout="wide")
-st.title("🤖 Cloud AI Bot Builder")
-st.caption("Browser-based Python automation assistant. No local GPU or Ollama required.")
-with st.sidebar:
-    st.subheader("Cloud AI settings")
-    token = st.text_input("Hugging Face access token", type="password",
-        help="Create a token at huggingface.co/settings/tokens. Do not commit it to GitHub.")
-    model = st.text_input("Inference model", value="Qwen/Qwen2.5-Coder-7B-Instruct",
-        help="Use a model currently supported by Hugging Face Inference Providers. Availability varies.")
-    st.info("Cloud inference may have small free credits and paid usage beyond those limits.")
-    st.warning("Generated code is never executed on the server.")
+st.set_page_config(page_title="AI Bot Builder Cloud", page_icon="🤖", layout="wide")
+st.title("🤖 AI Bot Builder — Cloud")
+st.caption("Generate Python code from your browser. No PC installation, GPU, or Ollama needed.")
 
-task = st.text_area("What should the bot do?", height=150,
-    placeholder="Example: Write a Playwright test for the login page of my own web app.")
-preferences = st.text_area("Custom coding instructions", height=110,
-    placeholder="Explain in Roman Urdu, use Python 3.11, add retries and comments.")
-if "generated_code" not in st.session_state:
-    st.session_state.generated_code = ""
-if st.button("Generate Python bot", type="primary"):
-    combined = task + "\n" + preferences
+with st.sidebar:
+    st.header("AI Provider")
+    st.success("Groq Cloud — free-tier supported, subject to limits")
+    key = st.text_input("Groq API key", type="password",
+        help="Create a key at console.groq.com/keys. Do not share it or commit it to GitHub.")
+    model = st.selectbox("AI model", ["openai/gpt-oss-20b", "openai/gpt-oss-120b"], index=0)
+    st.caption("If a model is unavailable for your account, choose the other model. Usage is rate-limited.")
+    st.warning("Generated code is never executed automatically.")
+
+st.subheader("1. Describe your bot")
+task = st.text_area("What should the bot do?", height=130,
+    placeholder="Example: Test the signup flow on my own demo site with Playwright.")
+
+st.subheader("2. My coding rules")
+if "preferences" not in st.session_state:
+    st.session_state.preferences = "Explain in Roman Urdu. Use Python 3.11, comments, and clear error handling."
+preferences = st.text_area("Custom instructions — edit freely", key="preferences", height=130,
+    help="These instructions customize the generated code and explanations, not the app's safety boundaries.")
+st.download_button("Download my coding rules", preferences, "my_coding_rules.txt", mime="text/plain")
+
+if "generated" not in st.session_state:
+    st.session_state.generated = ""
+if st.button("Generate code", type="primary"):
     if not task.strip():
-        st.error("Please describe your automation task.")
-    elif any(re.search(p, combined) for p in PATTERNS):
-        st.error("Verification bypass and mass third-party account creation are not supported. You can test authorized signup flows instead.")
-    elif not token.strip():
-        st.error("Enter your Hugging Face token in the sidebar.")
+        st.error("Describe a task first.")
+    elif any(re.search(pattern, task + "\n" + preferences) for pattern in BLOCKED):
+        st.error("This tool supports authorized automation, not mass third-party account creation or verification bypass.")
+    elif not key.strip():
+        st.error("Enter a Groq API key in the sidebar to enable AI generation.")
     else:
-        body = {
-            "model": model.strip(),
+        payload = {
+            "model": model,
             "messages": [
-                {"role": "system", "content": RULES},
-                {"role": "user", "content": "Preferences (when compatible):\n" + preferences + "\n\nTask:\n" + task},
+                {"role": "system", "content": SAFETY},
+                {"role": "user", "content": "Coding preferences:\n" + preferences + "\n\nTask:\n" + task},
             ],
-            "max_tokens": 1500,
-            "temperature": 0.25,
+            "temperature": 0.3,
+            "max_tokens": 2048,
         }
         try:
-            with st.spinner("Generating code using cloud AI..."):
-                response = requests.post(
-                    ENDPOINT, headers={"Authorization": "Bearer " + token.strip()},
-                    json=body, timeout=120,
-                )
-            if not response.ok:
-                st.error(f"Inference API error ({response.status_code}): {response.text[:400]}")
+            with st.spinner("Generating with Groq..."):
+                response = requests.post(ENDPOINT,
+                    headers={"Authorization": "Bearer " + key.strip(),
+                             "Content-Type": "application/json"},
+                    json=payload, timeout=120)
+            if response.status_code == 429:
+                st.error("Groq free-tier rate limit reached. Wait and retry later.")
+            elif response.status_code == 401:
+                st.error("Invalid API key. Check your Groq key.")
+            elif not response.ok:
+                st.error(f"Groq API error ({response.status_code}): {response.text[:350]}")
             else:
-                st.session_state.generated_code = response.json()["choices"][0]["message"]["content"]
+                st.session_state.generated = response.json()["choices"][0]["message"]["content"]
         except (requests.RequestException, KeyError, IndexError, ValueError) as exc:
-            st.error(f"Request failed: {exc}")
+            st.error(f"AI request failed: {exc}")
 
-st.subheader("Review and edit generated output")
-edited = st.text_area("Generated Python / notes", value=st.session_state.generated_code, height=400)
+st.subheader("3. Review and export")
+edited = st.text_area("Generated output (editable)", value=st.session_state.generated, height=360)
 if edited.strip():
-    st.download_button("Download output", data=edited,
-                       file_name="generated_bot.txt", mime="text/plain")
-st.caption("Your prompt is sent to the chosen cloud inference provider. Never include passwords or private data.")
+    st.download_button("Download generated output", edited, "generated_bot.txt", mime="text/plain")
+st.caption("Prompts are sent to Groq. Never enter passwords or private information. Review generated code before running.")
