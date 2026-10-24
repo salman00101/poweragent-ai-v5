@@ -30,3 +30,19 @@ The builder supports authorized testing, productivity, and automation. It does n
 
 ## Notes
 Model output can be inaccurate. The app is a starter project, not a hardened multi-user service. Keep it bound to localhost, and do not paste passwords or secrets into prompts.
+
+## Run online without installing anything on your PC
+
+The cloud entrypoint is `ai-bot-builder/cloud_app.py`. It uses a user-provided Hugging Face access token instead of local Ollama. Hugging Face offers limited free inference credits; model availability and billing can change.
+
+1. Visit https://share.streamlit.io and sign in with GitHub.
+2. Select **Create app** → **I have an app**.
+3. Repository: `salman00101/poweragent-ai-v5`.
+4. Branch: your repository's default branch (usually `main`).
+5. Main file path: `ai-bot-builder/cloud_app.py`.
+6. Click **Deploy**. Streamlit should install the sibling `requirements.txt` automatically.
+7. Open the generated `streamlit.app` link and enter a Hugging Face token in the password field. Choose a model available through Inference Providers.
+
+**Security:** Never commit API tokens to GitHub. The app does not save the token to the repository. If you deploy publicly, other visitors can open the UI but must supply their own token. Cloud prompts go to the inference provider. Do not enter sensitive information. The app never executes generated code.
+
+The original local entrypoint remains `ai-bot-builder/app.py`.
